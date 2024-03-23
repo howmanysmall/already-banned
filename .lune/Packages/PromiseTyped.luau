@@ -62,6 +62,12 @@ type SignalConnection = {
 
 return Promise :: {
 	Error: any,
+	Status: {
+		Started: "Started",
+		Resolved: "Resolved",
+		Rejected: "Rejected",
+		Cancelled: "Cancelled",
+	},
 
 	All: <T>(promises: {TypedPromise<T>}) -> TypedPromise<{T}>,
 	AllSettled: <T>(promise: {TypedPromise<T>}) -> TypedPromise<{Status}>,
