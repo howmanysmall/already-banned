@@ -52,7 +52,12 @@ local function GetWithoutCase(Headers: HttpUtilities.HttpHeaderMap, LookFor: str
 	return nil
 end
 
+local LastKnownCursor: string? = nil
+
 local function Retry(Cursor: string?)
+	if Cursor then
+		LastKnownCursor = Cursor
+	end
 	return RobloxApiUtilities.PromiseSignedInRequest({
 		Method = "GET";
 		Url = `{Url}{if Cursor then Cursor else ""}`;
@@ -107,7 +112,7 @@ local Object: Pages.Pages<RobloxApiUtilities.AssetIdName> = Pages.new(function(C
 		Cursor = GetLastKnownCursor()
 	end
 
-	return Promise.Retry(Retry, 1000, Cursor)
+	return Promise.Retry(Retry, 20, Cursor)
 end)
 
 local PageIndex = 0
@@ -123,6 +128,11 @@ PagesIterator(Object):Then(function(Assets: {RobloxApiUtilities.AssetIdName})
 		AssetIds[Length] = `{Value.assetId} - {Value.name}`
 	end
 end):Catch(function(Exception)
+	if LastKnownCursor then
+		pcall(function()
+			fs.writeFile("LastKnownCursor.txt", LastKnownCursor)
+		end)
+	end
 	warn(`Failed to get {AssetType}: {Exception}`)
 end):Wait()
 
