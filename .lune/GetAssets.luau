@@ -12,6 +12,7 @@ local Pages = require("./Classes/Pages")
 local PagesIterator = require("./Utilities/PagesIterator")
 local Promise = require("./Packages/PromiseTyped")
 local RobloxApiUtilities = require("./Utilities/RobloxApiUtilities")
+local fs = require("@lune/fs")
 local process = require("@lune/process")
 local serde = require("@lune/serde")
 local stdio = require("@lune/stdio")
@@ -52,6 +53,13 @@ local function GetWithoutCase(Headers: HttpUtilities.HttpHeaderMap, LookFor: str
 end
 
 local function Retry(Cursor: string?)
+	if Cursor then
+		-- get trolled ssds
+		pcall(function()
+			fs.writeFile("LastKnownCursor.txt", Cursor)
+		end)
+	end
+
 	return RobloxApiUtilities.PromiseSignedInRequest({
 		Method = "GET";
 		Url = `{Url}{if Cursor then Cursor else ""}`;
@@ -60,7 +68,7 @@ local function Retry(Cursor: string?)
 			return Promise.Delay(tonumber(GetWithoutCase(ResponseDictionary.Headers, "Retry-After") or 15) or 15):Then(
 				function()
 					error(
-						`Failed to get {AssetType}: {ResponseDictionary.StatusCode} ({ResponseDictionary.StatusMessage})`
+						`Failed to get {AssetType}: {ResponseDictionary.StatusCode} ({ResponseDictionary.StatusMessage}) (we're on cursor {Cursor})`
 					)
 				end
 			)
@@ -69,7 +77,7 @@ local function Retry(Cursor: string?)
 		if ResponseDictionary.StatusCode == 429 then
 			return Promise.Delay(tonumber(GetWithoutCase(ResponseDictionary.Headers, "Retry-After") or 15) or 15):Then(
 				function()
-					error("Unepic error 429... gonna retry...")
+					error(`Unepic error 429... gonna retry... (we're on cursor {Cursor})`)
 				end
 			)
 		end
