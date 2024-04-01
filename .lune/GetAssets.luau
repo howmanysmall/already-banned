@@ -101,7 +101,7 @@ end):Wait()
 print(`Got {BoldBlue(`{Length}`)} assets.`)
 
 -- I recommend yaml for this actually
-local FILE_TYPES: {FileType.FileType} = {FileType.Json, FileType.Yaml}
+local FILE_TYPES: {FileType.FileType} = {FileType.Json, FileType.Yaml, FileType.Toml}
 local TypeIndex: number = stdio.prompt("select", "What do you want to write the file as?", FILE_TYPES)
 
 if TypeIndex == 0 or not TypeIndex then
@@ -119,12 +119,13 @@ end
 
 print(`Writing {BoldBlue(`{Length}`)} assets to {BoldGreen(`{WriteLocation}.{Type}`)}...`)
 
-local WroteFile, FileError = pcall(
-	FileSystemUtilities.SafeCreate,
-	`{WriteLocation}.{Type}`,
-	"File" :: "File",
-	serde.encode(Type, AssetIds, true)
-)
+local WroteFile, FileError = pcall(function()
+	return FileSystemUtilities.SafeCreate(
+		`{WriteLocation}.{Type}`,
+		"File" :: "File",
+		serde.encode(Type, AssetIds, true)
+	)
+end)
 
 if WroteFile then
 	process.exit(0)
@@ -132,12 +133,13 @@ end
 
 warn(`Failed to write - {FileError}`)
 for _, TypeOf: FileType.FileType in next, FileType do
-	WroteFile, FileError = pcall(
-		FileSystemUtilities.SafeCreate,
-		`{WriteLocation}.{TypeOf}`,
-		"File" :: "File",
-		serde.encode(TypeOf, AssetIds, true)
-	)
+	WroteFile, FileError = pcall(function()
+		return FileSystemUtilities.SafeCreate(
+			`{WriteLocation}.{TypeOf}`,
+			"File" :: "File",
+			serde.encode(TypeOf, AssetIds, true)
+		)
+	end)
 	if WroteFile then
 		process.exit(0)
 		break
@@ -145,8 +147,9 @@ for _, TypeOf: FileType.FileType in next, FileType do
 	warn(`Failed to write - {FileError}`)
 end
 
-WroteFile, FileError =
-	pcall(FileSystemUtilities.SafeCreate, `{WriteLocation}.txt`, "File" :: "File", table.concat(AssetIds, "\n"))
+WroteFile, FileError = pcall(function()
+	return FileSystemUtilities.SafeCreate(`{WriteLocation}.txt`, "File" :: "File", table.concat(AssetIds, "\n"))
+end)
 
 if not WroteFile then
 	warn(`Failed to write - {FileError}... it's so fucking joever...`)
