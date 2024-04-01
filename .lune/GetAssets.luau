@@ -58,38 +58,45 @@ local function Retry(Cursor: string?)
 	if Cursor then
 		LastKnownCursor = Cursor
 	end
+
 	return RobloxApiUtilities.PromiseSignedInRequest({
 		Method = "GET";
 		Url = `{Url}{if Cursor then Cursor else ""}`;
 	}):Then(function(ResponseDictionary)
 		if not ResponseDictionary.Success then
-			return Promise.Delay(tonumber(GetWithoutCase(ResponseDictionary.Headers, "Retry-After") or 15) or 15):Then(
-				function()
-					if Cursor then
-						pcall(function()
-							fs.writeFile("LastKnownCursor.txt", Cursor)
-						end)
-					end
+			local RetryAfter = GetWithoutCase(ResponseDictionary.Headers, "Retry-After")
+			if RetryAfter then
+				print("Retrying after", RetryAfter)
+			end
 
-					return Promise.Reject(
-						`Failed to get {AssetType}: {ResponseDictionary.StatusCode} ({ResponseDictionary.StatusMessage}) (we're on cursor {Cursor})`
-					)
+			return Promise.Delay(tonumber(RetryAfter or 15) or 15):Then(function()
+				if Cursor then
+					pcall(function()
+						fs.writeFile("LastKnownCursor.txt", Cursor)
+					end)
 				end
-			)
+
+				return Promise.Reject(
+					`Failed to get {AssetType}: {ResponseDictionary.StatusCode} ({ResponseDictionary.StatusMessage}) (we're on cursor {Cursor})`
+				)
+			end)
 		end
 
 		if ResponseDictionary.StatusCode == 429 then
-			return Promise.Delay(tonumber(GetWithoutCase(ResponseDictionary.Headers, "Retry-After") or 15) or 15):Then(
-				function()
-					if Cursor then
-						pcall(function()
-							fs.writeFile("LastKnownCursor.txt", Cursor)
-						end)
-					end
+			local RetryAfter = GetWithoutCase(ResponseDictionary.Headers, "Retry-After")
+			if RetryAfter then
+				print("Retrying after", RetryAfter)
+			end
 
-					return Promise.Reject(`Unepic error 429... gonna retry... (we're on cursor {Cursor})`)
+			return Promise.Delay(tonumber(RetryAfter or 15) or 15):Then(function()
+				if Cursor then
+					pcall(function()
+						fs.writeFile("LastKnownCursor.txt", Cursor)
+					end)
 				end
-			)
+
+				return Promise.Reject(`Unepic error 429... gonna retry... (we're on cursor {Cursor})`)
+			end)
 		end
 
 		return ResponseDictionary.Body
