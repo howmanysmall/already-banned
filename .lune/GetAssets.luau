@@ -66,7 +66,7 @@ local function Retry(Cursor: string?)
 						end)
 					end
 
-					error(
+					return Promise.Reject(
 						`Failed to get {AssetType}: {ResponseDictionary.StatusCode} ({ResponseDictionary.StatusMessage}) (we're on cursor {Cursor})`
 					)
 				end
@@ -82,7 +82,7 @@ local function Retry(Cursor: string?)
 						end)
 					end
 
-					error(`Unepic error 429... gonna retry... (we're on cursor {Cursor})`)
+					return Promise.Reject(`Unepic error 429... gonna retry... (we're on cursor {Cursor})`)
 				end
 			)
 		end
