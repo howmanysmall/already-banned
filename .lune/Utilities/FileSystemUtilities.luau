@@ -53,7 +53,7 @@ function FileSystemUtilities.GetExtension(Path: string)
 end
 
 type CreatorFunction = (Path: string, Contents: string?) -> ()
-type SafeCreate = ((Name: string, Type: "File", Contents: string) -> nil) & ((Name: string, Type: "Directory") -> nil)
+type SafeCreate = ((Name: string, Type: "File", Contents: string) -> ()) & ((Name: string, Type: "Directory") -> ())
 
 local function SafeCreate(Name: string, Type: "File" | "Directory", Contents: string?)
 	local CheckerFunction: typeof(fs.isDir) = if Type == "File" then fs.isFile else fs.isDir

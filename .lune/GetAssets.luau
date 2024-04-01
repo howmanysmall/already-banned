@@ -120,11 +120,7 @@ end
 print(`Writing {BoldBlue(`{Length}`)} assets to {BoldGreen(`{WriteLocation}.{Type}`)}...`)
 
 local WroteFile, FileError = pcall(function()
-	return FileSystemUtilities.SafeCreate(
-		`{WriteLocation}.{Type}`,
-		"File" :: "File",
-		serde.encode(Type, AssetIds, true)
-	)
+	FileSystemUtilities.SafeCreate(`{WriteLocation}.{Type}`, "File" :: "File", serde.encode(Type, AssetIds, true))
 end)
 
 if WroteFile then
@@ -134,7 +130,7 @@ end
 warn(`Failed to write - {FileError}`)
 for _, TypeOf: FileType.FileType in next, FileType do
 	WroteFile, FileError = pcall(function()
-		return FileSystemUtilities.SafeCreate(
+		FileSystemUtilities.SafeCreate(
 			`{WriteLocation}.{TypeOf}`,
 			"File" :: "File",
 			serde.encode(TypeOf, AssetIds, true)
@@ -148,7 +144,7 @@ for _, TypeOf: FileType.FileType in next, FileType do
 end
 
 WroteFile, FileError = pcall(function()
-	return FileSystemUtilities.SafeCreate(`{WriteLocation}.txt`, "File" :: "File", table.concat(AssetIds, "\n"))
+	FileSystemUtilities.SafeCreate(`{WriteLocation}.txt`, "File" :: "File", table.concat(AssetIds, "\n"))
 end)
 
 if not WroteFile then
