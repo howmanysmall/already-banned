@@ -53,13 +53,6 @@ local function GetWithoutCase(Headers: HttpUtilities.HttpHeaderMap, LookFor: str
 end
 
 local function Retry(Cursor: string?)
-	if Cursor then
-		-- get trolled ssds
-		pcall(function()
-			fs.writeFile("LastKnownCursor.txt", Cursor)
-		end)
-	end
-
 	return RobloxApiUtilities.PromiseSignedInRequest({
 		Method = "GET";
 		Url = `{Url}{if Cursor then Cursor else ""}`;
@@ -67,6 +60,12 @@ local function Retry(Cursor: string?)
 		if not ResponseDictionary.Success then
 			return Promise.Delay(tonumber(GetWithoutCase(ResponseDictionary.Headers, "Retry-After") or 15) or 15):Then(
 				function()
+					if Cursor then
+						pcall(function()
+							fs.writeFile("LastKnownCursor.txt", Cursor)
+						end)
+					end
+
 					error(
 						`Failed to get {AssetType}: {ResponseDictionary.StatusCode} ({ResponseDictionary.StatusMessage}) (we're on cursor {Cursor})`
 					)
@@ -77,6 +76,12 @@ local function Retry(Cursor: string?)
 		if ResponseDictionary.StatusCode == 429 then
 			return Promise.Delay(tonumber(GetWithoutCase(ResponseDictionary.Headers, "Retry-After") or 15) or 15):Then(
 				function()
+					if Cursor then
+						pcall(function()
+							fs.writeFile("LastKnownCursor.txt", Cursor)
+						end)
+					end
+
 					error(`Unepic error 429... gonna retry... (we're on cursor {Cursor})`)
 				end
 			)
@@ -86,7 +91,22 @@ local function Retry(Cursor: string?)
 	end):Then(HttpUtilities.PromiseDecodeUntyped)
 end
 
+local function GetLastKnownCursor(): string?
+	if fs.isFile("LastKnownCursor.txt") then
+		local Success, Value = pcall(fs.readFile, "LastKnownCursor.txt")
+		if Success then
+			return Value
+		end
+	end
+
+	return nil
+end
+
 local Object: Pages.Pages<RobloxApiUtilities.AssetIdName> = Pages.new(function(Cursor)
+	if not Cursor then
+		Cursor = GetLastKnownCursor()
+	end
+
 	return Promise.Retry(Retry, 1000, Cursor)
 end)
 
