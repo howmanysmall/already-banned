@@ -143,14 +143,10 @@ function Utilities.GuaranteeWriteFile(
 	end
 end
 
-function Utilities.GuaranteeAppendFile(
-	AssetIds: {string},
-	WriteLocation: string,
-	Type: FileType.FileType,
-	ShouldProcessExit: boolean
-)
+function Utilities.GuaranteeAppendFile(AssetIds: {string}, WriteLocation: string, ShouldProcessExit: boolean)
+	local String = table.concat(AssetIds, "\n")
 	local WroteFile, FileError = pcall(function()
-		FileSystemUtilities.Append(`{WriteLocation}.{Type}`, serde.encode(Type, AssetIds, true))
+		FileSystemUtilities.Append(`{WriteLocation}.txt`, String)
 	end)
 
 	if WroteFile then
@@ -161,10 +157,10 @@ function Utilities.GuaranteeAppendFile(
 		return
 	end
 
-	warn(`Failed to write - {FileError}`)
-	for _, TypeOf: FileType.FileType in next, FileType do
+	local Tries = 0
+	repeat
 		WroteFile, FileError = pcall(function()
-			FileSystemUtilities.Append(`{WriteLocation}.{TypeOf}`, serde.encode(TypeOf, AssetIds, true))
+			FileSystemUtilities.Append(`{WriteLocation}.txt`, String)
 		end)
 
 		if WroteFile then
@@ -175,12 +171,15 @@ function Utilities.GuaranteeAppendFile(
 			return
 		end
 
-		warn(`Failed to write - {FileError}`)
-	end
+		Tries += 1
+	until WroteFile or Tries > 20
 
-	WroteFile, FileError = pcall(function()
-		FileSystemUtilities.Append(`{WriteLocation}.txt`, table.concat(AssetIds, "\n"))
-	end)
+	if WroteFile then
+		if ShouldProcessExit then
+			process.exit(0)
+		end
+		return
+	end
 
 	if not WroteFile then
 		warn(`Failed to write - {FileError}... it's so fucking joever...`)

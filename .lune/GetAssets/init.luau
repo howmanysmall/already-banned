@@ -5,7 +5,6 @@
 local ApiUrls = require("../Meta/ApiUrls")
 local ApiUrlsMeta = require("../Meta/ApiUrlsMeta")
 local Chalk = require("../Packages/Chalk")
-local FileType = require("../Meta/FileType")
 local Pages = require("../Classes/Pages")
 local PagesIterator = require("../Utilities/PagesIterator")
 local Promise = require("../Packages/PromiseTyped")
@@ -28,12 +27,12 @@ if AssetIndex == 0 or not AssetIndex then
 end
 
 -- I recommend yaml for this actually
-local FILE_TYPES: {FileType.FileType} = {FileType.Json, FileType.Yaml, FileType.Toml}
-local TypeIndex: number = stdio.prompt("select", "What do you want to write the file as?", FILE_TYPES)
+-- local FILE_TYPES: {FileType.FileType} = {FileType.Json, FileType.Yaml, FileType.Toml}
+-- local TypeIndex: number = stdio.prompt("select", "What do you want to write the file as?", FILE_TYPES)
 
-if TypeIndex == 0 or not TypeIndex then
-	process.exit(0)
-end
+-- if TypeIndex == 0 or not TypeIndex then
+-- 	process.exit(0)
+-- end
 
 local Resume, LastCursor = (function(): (boolean, string?)
 	local LastKnownCursor = Utilities.GetLastKnownCursor()
@@ -45,7 +44,6 @@ local Resume, LastCursor = (function(): (boolean, string?)
 	return false, nil
 end)()
 
-local Type: FileType.FileType = FILE_TYPES[TypeIndex]
 local AssetType: ApiUrls.ApiUrl = ASSET_TYPES[AssetIndex]
 local Retry = Utilities.CreateRetry(ApiUrlsMeta[AssetType].Url, AssetType)
 
@@ -75,7 +73,7 @@ PagesIterator(Object):Then(function(Assets: {RobloxApiUtilities.AssetIdName})
 		AssetIds[Length] = `{Value.assetId} - {Value.name}`
 	end
 
-	Utilities.GuaranteeAppendFile(AssetIds, WriteLocation, Type, false)
+	Utilities.GuaranteeAppendFile(AssetIds, WriteLocation, false)
 end):Catch(function(Exception)
 	local LastKnownCursor = Utilities.LastKnownCursor
 	if LastKnownCursor then
