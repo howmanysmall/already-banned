@@ -77,4 +77,42 @@ local function SafeCreate(Name: string, Type: "File" | "Directory", Contents: st
 end
 FileSystemUtilities.SafeCreate = SafeCreate :: SafeCreate
 
+function FileSystemUtilities.IsFileSafe(Path: string)
+	local Success, ValueOrException = pcall(fs.isFile, Path)
+	if Success then
+		return ValueOrException
+	end
+
+	warn(`Failed to call isFile: {ValueOrException}`)
+	return false
+end
+
+function FileSystemUtilities.ReadFileSafe(Path: string)
+	local Success, ValueOrException = pcall(fs.readFile, Path)
+	if Success then
+		return ValueOrException
+	end
+
+	warn(`Failed to call isFile: {ValueOrException}`)
+	return ""
+end
+
+function FileSystemUtilities.WriteFileSafe(Path: string, Contents: string)
+	local Success, Exception = pcall(fs.writeFile, Path, Contents)
+	if Success then
+		return true
+	end
+
+	warn(`Failed to call writeFile: {Exception}`)
+	return false
+end
+
+function FileSystemUtilities.Append(Path: string, Contents: string)
+	if FileSystemUtilities.IsFileSafe(Path) then
+		Contents = `{FileSystemUtilities.ReadFileSafe(Path)}\n{Contents}}`
+	end
+
+	return FileSystemUtilities.WriteFileSafe(Path, `{FileSystemUtilities.ReadFileSafe(Path)}\n{Contents}}`)
+end
+
 return table.freeze(FileSystemUtilities)
