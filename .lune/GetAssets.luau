@@ -149,5 +149,7 @@ end)
 
 if not WroteFile then
 	warn(`Failed to write - {FileError}... it's so fucking joever...`)
+	print(table.concat(AssetIds, "\n"))
 end
+
 -- FileSystemUtilities.SafeCreate(`{WriteLocation}.{Type}`, "File", serde.encode(Type, AssetIds, true))
