@@ -21,23 +21,6 @@ local BoldGreen = Chalk.Bold .. Green
 local Blue = Chalk.Ansi256(39)
 local BoldBlue = Chalk.Bold .. Blue
 
--- do
--- 	local Length = 0
--- 	for PageIndex = 1, 10 do
--- 		print(
--- 			"\r"
--- 				.. `{BoldGreen("Page: ")}{BoldBlue(`{PageIndex}`)} {BoldGreen("(")}{BoldBlue(`{Length}`)}{BoldGreen(" assets)")}`
--- 				.. "\r"
--- 		)
--- 		for _ = 1, 5 do
--- 			Length += 1
--- 		end
--- 		print()
--- 	end
-
--- 	process.exit(0)
--- end
-
 local ASSET_TYPES: {ApiUrls.ApiUrl} = {ApiUrls.GetPants, ApiUrls.GetShirts}
 local AssetIndex: number = stdio.prompt("select", "What type of asset do you want to get?", ASSET_TYPES)
 
@@ -52,24 +35,6 @@ local Url = Metadata.Url
 
 local AssetIds = {}
 local Length = 0
-
-local function SmartRetryWithDelay(callback, times, ...)
-	assert(isCallable(callback), "Parameter #1 to Promise.retry must be a function")
-	assert(type(times) == "number", "Parameter #2 (times) to Promise.retry must be a number")
-	assert(type(seconds) == "number", "Parameter #3 (seconds) to Promise.retry must be a number")
-
-	local args, length = {...}, select("#", ...)
-
-	return Promise.Resolve(callback(...)):Catch(function(...)
-		if times > 0 then
-			Promise.Delay(seconds):Wait()
-
-			return Promise.RetryWithDelay(callback, times - 1, seconds, table.unpack(args, 1, length))
-		else
-			return Promise.Reject(...)
-		end
-	end)
-end
 
 local function GetWithoutCase(Headers: HttpUtilities.HttpHeaderMap, LookFor: string): string?
 	LookFor = string.lower(LookFor)
