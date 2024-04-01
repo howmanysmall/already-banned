@@ -53,17 +53,60 @@ local Url = Metadata.Url
 local AssetIds = {}
 local Length = 0
 
+local function SmartRetryWithDelay(callback, times, ...)
+	assert(isCallable(callback), "Parameter #1 to Promise.retry must be a function")
+	assert(type(times) == "number", "Parameter #2 (times) to Promise.retry must be a number")
+	assert(type(seconds) == "number", "Parameter #3 (seconds) to Promise.retry must be a number")
+
+	local args, length = {...}, select("#", ...)
+
+	return Promise.Resolve(callback(...)):Catch(function(...)
+		if times > 0 then
+			Promise.Delay(seconds):Wait()
+
+			return Promise.RetryWithDelay(callback, times - 1, seconds, table.unpack(args, 1, length))
+		else
+			return Promise.Reject(...)
+		end
+	end)
+end
+
+local function GetWithoutCase(Headers: HttpUtilities.HttpHeaderMap, LookFor: string): string?
+	LookFor = string.lower(LookFor)
+	for Key, Value in Headers do
+		if type(Value) ~= "string" then
+			continue
+		end
+
+		if string.lower(`{Key}`) == LookFor then
+			return Value
+		end
+	end
+
+	return nil
+end
+
 local function Retry(Cursor: string?)
 	return RobloxApiUtilities.PromiseSignedInRequest({
 		Method = "GET";
 		Url = `{Url}{if Cursor then Cursor else ""}`;
 	}):Then(function(ResponseDictionary)
 		if not ResponseDictionary.Success then
-			error(`Failed to get {AssetType}: {ResponseDictionary.StatusCode} ({ResponseDictionary.StatusMessage})`)
+			return Promise.Delay(tonumber(GetWithoutCase(ResponseDictionary.Headers, "Retry-After") or 15) or 15):Then(
+				function()
+					error(
+						`Failed to get {AssetType}: {ResponseDictionary.StatusCode} ({ResponseDictionary.StatusMessage})`
+					)
+				end
+			)
 		end
 
 		if ResponseDictionary.StatusCode == 429 then
-			error("Unepic error 429... gonna retry...")
+			return Promise.Delay(tonumber(GetWithoutCase(ResponseDictionary.Headers, "Retry-After") or 15) or 15):Then(
+				function()
+					error("Unepic error 429... gonna retry...")
+				end
+			)
 		end
 
 		return ResponseDictionary.Body
@@ -71,7 +114,7 @@ local function Retry(Cursor: string?)
 end
 
 local Object: Pages.Pages<RobloxApiUtilities.AssetIdName> = Pages.new(function(Cursor)
-	return Promise.RetryWithDelay(Retry, 1000, 15, Cursor)
+	return Promise.Retry(Retry, 1000, Cursor)
 end)
 
 local PageIndex = 0

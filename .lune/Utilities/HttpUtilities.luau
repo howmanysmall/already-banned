@@ -13,18 +13,19 @@ local JSON: "json" = "json"
 export type Promise<T...> = Promise.TypedPromise<T...>
 export type RequestDictionary = {
 	Body: string?,
-	Headers: net.HttpHeaderMap?,
+	Headers: HttpHeaderMap?,
 	Method: net.HttpMethod?,
 	Url: string,
 }
 
 export type ResponseDictionary = {
 	Body: string,
-	Headers: net.HttpHeaderMap,
+	Headers: HttpHeaderMap,
 	StatusCode: number,
 	StatusMessage: string,
 	Success: boolean,
 }
+export type HttpHeaderMap = net.HttpHeaderMap
 
 local function ReturnBody(ResponseDictionary: ResponseDictionary)
 	return ResponseDictionary.Body
