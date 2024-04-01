@@ -60,7 +60,9 @@ local function PromiseSignedInHeaders(): Promise.TypedPromise<{[string]: string}
 	end)
 end
 
-function RobloxApiUtilities.PromiseSignedInRequest(RequestDictionary: HttpUtilities.RequestDictionary)
+function RobloxApiUtilities.PromiseSignedInRequest(
+	RequestDictionary: HttpUtilities.RequestDictionary
+): Promise.TypedPromise<HttpUtilities.ResponseDictionary>
 	return PromiseSignedInHeaders():Then(function(Headers)
 		local NewHeaders = table.clone(RequestDictionary.Headers or {})
 		for Key, Value in Headers do
