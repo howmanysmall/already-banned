@@ -28,8 +28,8 @@ local function PagesIterator<T>(Object: Pages<T>): Promise.TypedPromise<T>
 			end
 			Resolve(Items)
 			return 1
-		end, function(Exception, Traceback)
-			Reject(`Failure: {Exception}\n{Traceback}`)
+		end, function(Exception)
+			Reject(`Failure: {Exception}`)
 			return 1
 		end)
 

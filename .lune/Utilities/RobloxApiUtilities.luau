@@ -71,7 +71,7 @@ function RobloxApiUtilities.PromiseSignedInRequest(
 
 		local NewRequestDictionary = table.clone(RequestDictionary)
 		NewRequestDictionary.Headers = NewHeaders
-		return HttpUtilities.PromiseRequest(NewRequestDictionary, false)
+		return HttpUtilities.PromiseRequest(NewRequestDictionary, true)
 	end)
 end
 

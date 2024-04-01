@@ -3,7 +3,6 @@
 --!strict
 
 local Promise = require("../Packages/PromiseTyped")
-local TsUtilities = require("../Utilities/TsUtilities")
 
 local Pages = {}
 Pages.ClassName = "Pages"
@@ -28,7 +27,7 @@ end
 function Pages.GetCurrentPage<T>(self: Class)
 	return Promise.Promisify(function()
 		if not self.CurrentPage then
-			TsUtilities.Await(self:AdvanceToNextPageAsync())
+			self:AdvanceToNextPageAsync():Expect()
 		end
 
 		return self.CurrentPage
@@ -41,7 +40,7 @@ function Pages.AdvanceToNextPageAsync(self: Class): Promise.Promise
 			error("No more pages to fetch.")
 		end
 
-		local Response = TsUtilities.Await(self.RequestFunction(self.NextPageCursor))
+		local Response = self.RequestFunction(self.NextPageCursor):Expect()
 		self.CurrentPage = Response.data
 		self.NextPageCursor = Response.nextPageCursor
 		self.IsFinished = self.NextPageCursor == nil
