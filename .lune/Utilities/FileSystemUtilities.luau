@@ -112,7 +112,7 @@ function FileSystemUtilities.Append(Path: string, Contents: string)
 		Contents = `{FileSystemUtilities.ReadFileSafe(Path)}\n{Contents}}`
 	end
 
-	return FileSystemUtilities.WriteFileSafe(Path, `{FileSystemUtilities.ReadFileSafe(Path)}\n{Contents}}`)
+	return FileSystemUtilities.WriteFileSafe(Path, Contents)
 end
 
 return table.freeze(FileSystemUtilities)
